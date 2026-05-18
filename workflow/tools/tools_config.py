@@ -15,10 +15,10 @@ from workflow import config as _cfg
 # Parameters come from workflow/config.py → env vars DEEPSEEK_API_KEY,
 # DEEPSEEK_BASE_URL, DEEPSEEK_V3_MODEL.  Set those in your .env file.
 DEEPSEEK_CHAT = ChatOpenAI(
-    model=_cfg.DeepSeekV3.model,
-    base_url=_cfg.DeepSeekV3.base_url,
-    api_key=_cfg.DeepSeekV3.api_key,
-    temperature=0.3,
+    model=_cfg.DeepSeekV3_2.model,
+    base_url=_cfg.DeepSeekV3_2.base_url,
+    api_key=_cfg.DeepSeekV3_2.api_key,
+    temperature=_cfg.DeepSeekV3_2.temperature,
 )
 
 # ── External API keys ─────────────────────────────────────────────────────────

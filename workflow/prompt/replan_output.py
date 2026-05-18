@@ -1,9 +1,16 @@
-from typing import List, Tuple
-from pydantic import BaseModel, Field
+from typing import List, Tuple, Any
+from pydantic import BaseModel, Field, model_validator
 
 # --- 基础模型 (Node 和 Plan 保持不变) ---
 class Node(BaseModel):
     content: str
+
+    @model_validator(mode="before")
+    @classmethod
+    def coerce_str_to_obj(cls, v: Any) -> Any:
+        if isinstance(v, str):
+            return {"content": v}
+        return v
 
 class Plan(BaseModel):
     node_id: int = Field(..., description="The id of the node")

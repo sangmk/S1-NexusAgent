@@ -1,5 +1,5 @@
-from pydantic import BaseModel, Field
-from typing import List
+from pydantic import BaseModel, Field, model_validator
+from typing import List, Any
 
 
 
@@ -22,6 +22,13 @@ from typing import List
 class ToolInfo(BaseModel):
     name: str = Field(..., description="工具的名称。")
     description: str = Field(..., description="关于工具功能的一句话简明描述。")
+
+    @model_validator(mode="before")
+    @classmethod
+    def coerce_str_to_obj(cls, v: Any) -> Any:
+        if isinstance(v, str):
+            return {"name": v, "description": v}
+        return v
 
 # 2. 定义整个模型输出的顶层结构
 class ToolInfoExtractOutput(BaseModel):

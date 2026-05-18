@@ -11,19 +11,21 @@ from pydantic import BaseModel, Field
 from workflow.const import Tools
 from workflow.tools.tools_config import TAVILY_API_KEY
 
+# OpenAI web search key (shared with embedding key)
+OPENAI_API_KEY: str = os.environ.get("EMBEDDING_API_KEY", "")
+OPENAI_WEB_SEARCH_MODEL: str = os.environ.get(
+    "OPENAI_WEB_SEARCH_MODEL", "gpt-4o-mini-search-preview"
+)
 
-# ── Web Search (Tavily) ───────────────────────────────────────────────────────
 
-def search(
-    query: str,
-    start_date: Optional[str] = None,
-    end_date: Optional[str] = None,
-    site: Optional[str] = None,
-) -> Optional[str]:
-    """Search the web using Tavily and return answer + top results."""
+# ── Web Search ────────────────────────────────────────────────────────────────
+
+
+def _search_tavily(query: str, site: Optional[str] = None) -> dict:
+    """Use Tavily API for web search."""
     api_key = TAVILY_API_KEY
     if not api_key:
-        return "Search unavailable: TAVILY_API_KEY environment variable not set."
+        return {"error": "TAVILY_API_KEY not set"}
 
     payload: dict = {
         "api_key": api_key,
@@ -35,25 +37,97 @@ def search(
     if site:
         payload["include_domains"] = [site]
 
-    try:
-        response = requests.post(
-            "https://api.tavily.com/search",
-            json=payload,
-            timeout=30,
-        )
-        response.raise_for_status()
-        data = response.json()
-        results = [
-            {"title": r.get("title", ""), "url": r.get("url", ""), "content": r.get("content", "")}
-            for r in data.get("results", [])
-        ]
-        return json.dumps(
-            {"answer": data.get("answer", ""), "results": results},
-            ensure_ascii=False,
-            indent=2,
-        )
-    except Exception as e:
-        return f"Search exception: {e}"
+    response = requests.post(
+        "https://api.tavily.com/search",
+        json=payload,
+        timeout=30,
+    )
+    response.raise_for_status()
+    data = response.json()
+    results = [
+        {"title": r.get("title", ""), "url": r.get("url", ""), "content": r.get("content", "")}
+        for r in data.get("results", [])
+    ]
+    return {"answer": data.get("answer", ""), "results": results}
+
+
+def _search_openai(query: str, site: Optional[str] = None) -> dict:
+    """Use OpenAI built-in web search via chat completions API."""
+    from openai import OpenAI
+
+    api_key = OPENAI_API_KEY
+    if not api_key:
+        return {"error": "OPENAI_API_KEY / EMBEDDING_API_KEY not set"}
+
+    client = OpenAI(api_key=api_key)
+    messages = [{"role": "user", "content": query}]
+
+    search_context = "low"
+    if site:
+        messages[0]["content"] = f"{query} site:{site}"
+
+    response = client.chat.completions.create(
+        model=OPENAI_WEB_SEARCH_MODEL,
+        messages=messages,
+        web_search_options={"search_context_size": search_context},
+        max_tokens=1500,
+    )
+
+    content = response.choices[0].message.content or ""
+
+    # Extract citations from annotations if present
+    citations = []
+    annotations = getattr(response.choices[0].message, "annotations", None) or []
+    for ann in annotations:
+        if hasattr(ann, "url_citation"):
+            citations.append({
+                "title": getattr(ann.url_citation, "title", ""),
+                "url": getattr(ann.url_citation, "url", ""),
+            })
+
+    return {
+        "answer": content,
+        "results": citations if citations else [{"title": "Web search", "url": "", "content": content[:300]}],
+    }
+
+
+def search(
+    query: str,
+    start_date: Optional[str] = None,
+    end_date: Optional[str] = None,
+    site: Optional[str] = None,
+) -> Optional[str]:
+    """Search the web and return answer + top results.
+
+    Uses Tavily if TAVILY_API_KEY is set, otherwise falls back to OpenAI web search
+    if EMBEDDING_API_KEY (OpenAI key) is set.
+    """
+    if TAVILY_API_KEY:
+        engine = "tavily"
+        try:
+            data = _search_tavily(query, site)
+        except Exception as e:
+            return f"Tavily search exception: {e}"
+    elif OPENAI_API_KEY:
+        engine = "openai"
+        if start_date or end_date:
+            # OpenAI web search doesn't support date filtering
+            query = f"{query} (from {start_date or 'any'} to {end_date or 'now'})"
+        try:
+            data = _search_openai(query, site)
+        except Exception as e:
+            return f"OpenAI search exception: {e}"
+    else:
+        return "Search unavailable: set TAVILY_API_KEY or EMBEDDING_API_KEY (OpenAI) environment variable."
+
+    if "error" in data:
+        return f"Search error ({engine}): {data['error']}"
+
+    return json.dumps(
+        {"engine": engine, "answer": data.get("answer", ""), "results": data.get("results", [])},
+        ensure_ascii=False,
+        indent=2,
+    )
 
 
 class SearchInput(BaseModel):
@@ -80,7 +154,7 @@ class SearchOutput(BaseModel):
 search_tool = StructuredTool.from_function(
     func=search,
     name="web_search",
-    description="Searches the web using Tavily and returns an answer summary plus top result URLs and snippets.",
+    description="Searches the web using Tavily or OpenAI and returns an answer summary plus top result URLs and snippets.",
     args_schema=SearchInput,
     metadata={
         "args_schema_json": SearchInput.model_json_schema(),

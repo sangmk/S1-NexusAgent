@@ -1,4 +1,3 @@
-
 import json
 import pickle
 import time
@@ -7,7 +6,7 @@ from typing import Dict, Optional, Any
 from langchain_core.tools import StructuredTool
 from pydantic import BaseModel, Field
 from langchain_openai import ChatOpenAI
-from langchain_deepseek import ChatDeepSeek
+
 import hashlib
 
 from dotenv import load_dotenv
@@ -35,7 +34,7 @@ from workflow import config as science_config
 # - _format_query_results
 
 
-DEEPSEEK_CHAT = ChatDeepSeek(
+DEEPSEEK_CHAT = ChatOpenAI(
         model=science_config.DeepSeekV3_2.model,
         base_url=science_config.DeepSeekV3_2.base_url,
         api_key=science_config.DeepSeekV3_2.api_key,

@@ -1,0 +1,51 @@
+# Sensitive files — NEVER commit
+.env
+.env.*
+*.pem
+*.key
+credentials.*
+secret*
+*.secret
+
+# Bytecode
+__pycache__/
+*.pyc
+*.pyo
+
+# Logs
+logs/
+*.log
+nexus_agent.log
+
+# Python packaging
+*.egg-info/
+dist/
+build/
+
+# Virtual environments
+.venv/
+venv/
+env/
+
+# IDE / editor
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS junk
+.DS_Store
+Thumbs.db
+
+# direnv (env vars already in .env, but block just in case)
+.envrc
+
+# Docker sandbox state
+docker/sandbox/
+
+# Node (web UI)
+node_modules/
+
+# Backup files
+*.bak

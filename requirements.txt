@@ -1,52 +1,68 @@
-# LangChain & LangGraph - 最新版本
-langchain-core
-langgraph
+# S1-NexusAgent complete dependencies
+# Minimal install: pip install -r requirements.txt
+# Better: pip install -e ".[all]"  (see pyproject.toml)
+
+# Core agent
+langchain-core>=0.3.0
+langgraph>=1.0.0
+langgraph-checkpoint>=4.0.0
 langchain-openai
-langchain-deepseek
-
-# 数据验证
 pydantic>=2.0.0
+python-dotenv
+openai
+deepagents>=0.4.7
+deepagents-cli>=0.0.31
+rich
+aiohttp
+fastapi
+minio
 
-# 数据处理
-pandas
-numpy
-scipy
-scikit-learn
-
-# 生物信息学
+# Science: biology
 biopython
 gget
 gseapy
 scanpy
+crawl4ai
+pymed
+scholarly
 
-# 化学
+# Science: chemistry
 rdkit
+chemistry-tools
+mathematical
+cawdrey
 
-# HTTP/网络
+# Science: general
+numpy
+scipy
+pandas
+scikit-learn
+matplotlib
+tqdm
+pymatgen
+
+# Network/data
 requests
-aiohttp
 httpx
 beautifulsoup4
 lxml
-
-# 数据库
 pymongo
-
-# 可视化
-matplotlib
-tqdm
-
-# 其他工具
-playwright
-openai
-python-dotenv
-
-# 代码执行沙箱
-agent-sandbox
-
-# Deep Agents CLI (交互式终端)
-deepagents
-deepagents-cli
-textual>=1.0.0
 tavily-python
-rich
+arxiv
+playwright
+
+# Imaging/office
+opencv-python-headless
+scikit-image
+python-pptx
+python-docx
+validators
+
+# Sandbox
+agent-sandbox>=1.0.0
+
+# Observability
+langfuse
+
+# CLI
+textual>=1.0.0

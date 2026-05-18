@@ -1,0 +1,74 @@
+[project]
+name = "s1-nexusagent"
+version = "1.0.0"
+requires-python = ">=3.11"
+
+dependencies = [
+    "langgraph>=1.0.0",
+    "langgraph-checkpoint>=4.0.0",
+    "langgraph-prebuilt>=1.0.0",
+    "langchain-core>=0.3.0",
+    "langchain-openai",
+    "pydantic>=2.0.0",
+    "python-dotenv",
+    "openai",
+    "deepagents>=0.4.7",
+    "deepagents-cli>=0.0.31",
+    "rich",
+    "aiohttp",
+    "fastapi",
+    "minio",
+]
+
+[project.optional-dependencies]
+science = [
+    "biopython",
+    "gget",
+    "gseapy",
+    "scanpy",
+    "rdkit",
+    "numpy",
+    "scipy",
+    "pandas",
+    "scikit-learn",
+    "httpx",
+    "requests",
+    "beautifulsoup4",
+    "lxml",
+    "pymongo",
+    "tavily-python",
+    "playwright",
+    "crawl4ai",
+    "pymed",
+    "scholarly",
+    "arxiv",
+    "pymatgen",
+    "opencv-python-headless",
+    "scikit-image",
+    "python-pptx",
+    "python-docx",
+    "validators",
+    "chemistry-tools",
+    "mathematical",
+    "cawdrey",
+]
+cli = [
+    "textual>=1.0.0",
+    "textual-autocomplete>=3.0.0",
+    "prompt-toolkit>=3.0.0",
+]
+sandbox = [
+    "agent-sandbox>=1.0.0",
+]
+observability = [
+    "langfuse",
+]
+all = [
+    "s1-nexusagent[science,cli,sandbox,observability]",
+]
+
+[tool.setuptools.packages.find]
+include = ["workflow*", "cli*", "config*"]
+
+[project.scripts]
+nexus = "cli.main:run_nexus_cli_async"

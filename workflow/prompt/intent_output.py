@@ -1,6 +1,6 @@
-from typing import List, Optional, Literal
+from typing import List, Optional, Literal, Union, Any
 from enum import Enum
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, model_validator
 
 # --- 1. 核心枚举 (用于路由和优先级) ---
 
@@ -44,15 +44,36 @@ class DataArtifact(BaseModel):
     specification: str = Field(..., description="格式或约束说明，如 'CSV格式，包含P值列'")
     is_mandatory: bool = Field(True, description="是否为必须项")
 
+    @model_validator(mode="before")
+    @classmethod
+    def coerce_str_to_obj(cls, v: Any) -> Any:
+        if isinstance(v, str):
+            return {"name": v, "specification": "", "is_mandatory": True}
+        return v
+
 class TaskConstraint(BaseModel):
     """用户的显式约束（工具偏好、方法限定）"""
     constraint: str = Field(..., description="具体的约束条件，如 '必须使用AlphaFold2' 或 '置信度需>90%'")
     type: Literal["Method", "Tool", "Resource"] = Field(..., description="约束类型")
 
+    @model_validator(mode="before")
+    @classmethod
+    def coerce_str_to_obj(cls, v: Any) -> Any:
+        if isinstance(v, str):
+            return {"constraint": v, "type": "Method"}
+        return v
+
 class SubGoal(BaseModel):
     """简化的子目标"""
     description: str = Field(..., description="子任务的简明描述")
     priority: Priority = Field(Priority.MEDIUM, description="执行优先级")
+
+    @model_validator(mode="before")
+    @classmethod
+    def coerce_str_to_obj(cls, v: Any) -> Any:
+        if isinstance(v, str):
+            return {"description": v, "priority": Priority.MEDIUM}
+        return v
 
 # --- 3. 主输出模型 (LangGraph State 的核心载荷) ---
 

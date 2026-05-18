@@ -29,7 +29,7 @@ class DeepSeekV3_2:
     model: str = os.environ.get("DEEPSEEK_V3_2_MODEL", "deepseek-chat")
     api_key: str = os.environ.get("DEEPSEEK_API_KEY", "")
     base_url: str = os.environ.get("DEEPSEEK_BASE_URL", "https://api.deepseek.com/v1")
-    temperature: float = 0.6
+    temperature: float = float(os.environ.get("DEEPSEEK_V3_2_TEMPERATURE", "0.6"))
 
 
 class Qwen3:
